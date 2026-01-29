@@ -1,0 +1,359 @@
+<mat-toolbar class="app-toolbar">
+  <span class="app-toolbar-title">TomNext Portfolio News Dashboard</span>
+</mat-toolbar>
+
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav-content class="sidenav-content">
+    <div class="content-wrapper">
+      <!-- Top Indicators -->
+      <div class="top-indicators">
+        <mat-card class="indicator-card">
+          <mat-card-content>
+            <div class="indicator-icon articales-icon">
+              <mat-icon>newspaper</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <p>Articles (Last 7 Days)</p>
+              <h4>{{ analytics.articlesLast7Days }}</h4>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="indicator-card">
+          <mat-card-content>
+            <div class="indicator-icon relevance-icon">
+              <mat-icon>priority_high</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <p>High Relevance</p>
+              <h4>{{ analytics.highRelevanceCount }}</h4>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="indicator-card">
+          <mat-card-content>
+            <div class="indicator-icon coverage-icon">
+              <mat-icon>assessment</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <p>Coverage</p>
+              <h4>{{ analytics.coveragePercentage }}%</h4>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="indicator-card">
+          <mat-card-content>
+            <div class="indicator-icon sectors-icon">
+              <mat-icon>category</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <p>Top Sectors</p>
+              <h4>{{ analytics.topSectors }}</h4>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <div class="dashboard-top-wrapper">
+          <!-- Left News Feed -->
+          <div class="news-feed-panel">
+            <mat-card class="news-feed-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <div class="card-icon news-feed-icon">
+                    <mat-icon>inbox</mat-icon>
+                  </div>
+                  News Feed
+                </mat-card-title>
+              </mat-card-header>
+              <mat-toolbar class="controls-toolbar" color="default">
+                <div class="sort-controls">
+                  <span class="control-label">Sort by:</span>
+                  <button
+                    mat-button
+                    [class.active]="sortBy === 'recent'"
+                    (click)="onSortChange('recent')"
+                  >
+                    Recent
+                  </button>
+                  <button
+                    mat-button
+                    [class.active]="sortBy === 'relevant'"
+                    (click)="onSortChange('relevant')"
+                  >
+                    Relevant
+                  </button>
+                </div>
+
+                <div class="filter-controls">
+                <mat-form-field appearance="outline" class="filter-field assets-filter-field">
+                  <mat-label>All assests</mat-label>
+                  <mat-select [(ngModel)]="selectedAsset" (selectionChange)="onChangeFilters()">
+                    @for (asset of allAssets; track asset) {
+                      <mat-option [value]="asset.fundName">{{ asset.fundName }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field">
+                  <mat-label>Geo</mat-label>
+                  <mat-select [(ngModel)]="selectedGeo" (selectionChange)="onChangeFilters()">
+                    @for (asset of allAssets; track asset) {
+                      <mat-option [value]="asset.geography">{{ asset.geography }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field sector-filter-field">
+                  <mat-label>Sector</mat-label>
+                  <mat-select [(ngModel)]="selectedSector" (selectionChange)="onChangeFilters()">
+                    @for (asset of allAssets; track asset) {
+                      <mat-option [value]="asset.sectors">{{ asset.sectors }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <button class="filter-clear-btn" matMiniFab (click)="clearNewsFilters()">
+                  <mat-icon>close</mat-icon>
+                </button>
+                </div>
+              </mat-toolbar>
+              <mat-card-content>
+                <div class="news-feed-content">
+                  @if (!isNewsLoading && !isNewsError) {
+                    <mat-nav-list>
+                      @for (news of filteredNews; track news.link) {
+                        <a mat-list-item (click)="openDetailDrawer(news)" class="news-item">
+                          <div class="news-content">
+                            <div class="news-header">
+                              <div class="news-meta">
+                                <div class="news-meta-left">
+                                  <span class="news-source">{{ news.source }}</span>
+                                  <span class="news-date">{{ news.publishedAt | date: 'MMM d, y, h:mm:ss a' }}</span>
+                                </div>
+                                <div class="relevance-badge">
+                                  <!-- [color]="getRelevanceColor(news)" -->
+                                  <mat-chip
+                                    class="relevance-chip"
+                                    [ngStyle]="{ 'background-color': getRelevanceColor(news) + 18, 'color': getRelevanceColor(news) }"
+                                  >
+                                    {{ getRelevanceLevel(news) }}
+                                  </mat-chip>
+                                </div>
+                              </div>
+                              <h4 class="news-title">{{ news.title }}</h4>
+
+                              <!-- Relevance Badge -->
+                              <p class="news-description">
+                                {{ extractAnchorText(news.description) }}
+                              </p>
+                            </div>
+                          </div>
+                        </a>
+                      }
+                    </mat-nav-list>
+                  }
+                  @if (isNewsLoading) {
+                    <div class="news-loading">
+                      <mat-spinner diameter="32"></mat-spinner>
+                      <span>Loading news...</span>
+                    </div>
+                  }
+                  @if (isNewsError) {
+                    <div class="news-error">
+                      <mat-icon color="warn">error</mat-icon>
+                      <span>Failed to load news. Please try again later.</span>
+                      <button mat-button (click)="loadNews()">Retry</button>
+                    </div>
+                  }
+
+                  @if (!isNewsLoading && !isNewsError && filteredNews.length === 0) {
+                    <div class="no-news">
+                      <mat-icon>rss_feed</mat-icon>
+                      <span>No news available at the moment.</span>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          <!-- Right Analytics Panel -->
+          <div class="analytics-panel">
+            <mat-card class="analytics-card">
+              <mat-card-header>
+                <mat-card-title
+                  ><div class="card-icon analytics-icon">
+                    <mat-icon>inbox</mat-icon>
+                  </div>
+                  Analytics</mat-card-title
+                >
+              </mat-card-header>
+              <mat-card-content>
+                <mat-tab-group class="analytics-tab">
+                  <mat-tab label="Articles Over Time">
+                    <div class="chart-placeholder">
+                      <app-charts [config]="articlesOverTimeConfig"></app-charts>
+                    </div>
+                  </mat-tab>
+                  <mat-tab label="Articles Per Asset">
+                    <mat-chip-listbox>
+                      <app-charts [config]="articlesPerAssetConfig"></app-charts>
+                    </mat-chip-listbox></mat-tab>
+                  <mat-tab label="Articles By Sector">
+                    <mat-chip-listbox>
+                      <app-charts [config]="articlesByCategoryConfig"></app-charts>
+                    </mat-chip-listbox>
+                  </mat-tab>
+                </mat-tab-group>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+        <!-- Center Table View -->
+        <div class="table-panel">
+          <mat-card class="table-card">
+            <mat-card-header>
+              <mat-card-title
+                ><div class="card-icon news-table-icon">
+                  <mat-icon>inbox</mat-icon>
+                </div>
+                News Table</mat-card-title
+              >
+            </mat-card-header>
+            <mat-card-content>
+              <div class="table-controls">
+                <mat-form-field appearance="outline" class="table-filter">
+                  <input matInput #filter (input)="onNewsFilterChange(filter.value)" placeholder="Filter news..." />
+                </mat-form-field>
+              </div>
+              <div class="table-responsive">
+                <table
+                  mat-table
+                  [dataSource]="dataSource"
+                  matSort
+                  class="mat-elevation-z1 news-table"
+                >
+                  <ng-container matColumnDef="title">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
+                    <td mat-cell *matCellDef="let news">{{ news.title }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="assets">
+                    <th mat-header-cell *matHeaderCellDef>Assets</th>
+                    <td mat-cell *matCellDef="let news">
+                      <mat-chip-listbox>
+                        @if (news.category) {
+                          <mat-chip-option class="table-chip">{{ news.category }}</mat-chip-option>
+                        }
+                      </mat-chip-listbox>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="relevance">
+                    <th mat-header-cell *matHeaderCellDef>Relevance</th>
+                    <td mat-cell *matCellDef="let news">
+                      <mat-chip [ngStyle]="{ 'background-color': getRelevanceColor(news) + 18, 'color': getRelevanceColor(news) }" class="relevance-chip">{{
+                        getRelevanceLevel(news)
+                      }}</mat-chip>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="sector">
+                    <th mat-header-cell *matHeaderCellDef>Sector</th>
+                    <td mat-cell *matCellDef="let news">{{ news.category || 'Business' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="geo">
+                    <th mat-header-cell *matHeaderCellDef>Geo</th>
+                    <td mat-cell *matCellDef="let news">{{ news.geography }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="source">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Source</th>
+                    <td mat-cell *matCellDef="let news">{{ news.source }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="date">
+                    <th mat-header-cell *matHeaderCellDef>Date</th>
+                    <td mat-cell *matCellDef="let news">
+                      <div class="date-filed">
+                        <mat-icon class="date-icon">calendar_today</mat-icon>
+                        <span>{{ news.publishedAt |  date: 'dd-MMM-yyyy' }}</span>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="tableColumns"></tr>
+                  <tr
+                    mat-row
+                    *matRowDef="let row; columns: tableColumns"
+                    (click)="openDetailDrawer(row)"
+                  ></tr>
+                </table>
+              </div>
+              <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+@if (isDetailDrawerOpen) {
+  <mat-drawer-container class="detail-drawer-container">
+    <mat-drawer #detailDrawer mode="side" position="end" opened="true" class="detail-drawer">
+      <div class="drawer-header">
+        <h3>Drawer</h3>
+        <button mat-icon-button (click)="closeDetailDrawer()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="drawer-body">
+        <h5 class="date-label">
+          <mat-icon>calendar_today</mat-icon>
+          {{ (selectedNewsItem?.publishedAt | date: 'MMM d, y, h:mm:ss a') || '' }}
+        </h5>
+        <div class="detail-content">
+          <div class="article-snippet">
+            <h5 class="content-label">Article Snippet</h5>
+            <p>{{ extractAnchorText(selectedNewsItem?.description) }}</p>
+          </div>
+
+          <div class="linked-assets">
+            <h5 class="content-label">Linked Assets</h5>
+            <mat-chip-listbox>
+              <!-- <mat-chip-option *ngIf="selectedNewsItem?.category" class="detail-chip">
+                {{ selectedNewsItem?.category }}
+              </mat-chip-option> -->
+            </mat-chip-listbox>
+          </div>
+
+          <div class="why-matched">
+            <h5>Why it Matched</h5>
+            <p>Relevance: {{ getRelevanceLevel(selectedNewsItem!) }}</p>
+          </div>
+
+          <div class="detail-actions">
+            <button mat-raised-button color="primary" (click)="markAsRead(selectedNewsItem!)">
+              <mat-icon>mark_email_read</mat-icon>
+              Mark as Read
+            </button>
+            <button mat-raised-button color="accent" (click)="pinNews(selectedNewsItem!)">
+              <mat-icon>push_pin</mat-icon>
+              Pin
+            </button>
+            <a mat-stroked-button [href]="selectedNewsItem?.link" target="_blank">
+              <mat-icon>launch</mat-icon>
+              Read Full Article
+            </a>
+          </div>
+        </div>
+      </div>
+    </mat-drawer>
+  </mat-drawer-container>
+}

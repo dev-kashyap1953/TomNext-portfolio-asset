@@ -1,0 +1,84 @@
+@use '@angular/material' as mat;
+@use 'ngx-toastr/toastr';
+
+html {
+  height: 100%;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+// Custom global styles
+:root {
+  --primary-color: #0162e8;
+  --primary-color-rgb: 1, 98, 232;
+  --dark-color: #242f48;
+  --muted-color: #7987a1;
+  --white-color: #ffffff;
+  --body-bg-color: #ecf0fa;
+  --scroll-track-color: #f1f1f1;
+  --scroll-thumb-color: #c1c1c1;
+  --red-900: #f93a5a;
+  --red-800: #f7778c;
+  --green-900: #029666;
+  --green-800: #48d6a8;
+  --orange-900: #f76a2d;
+  --orange-800: #efa65f;
+  --blue-900: #003886;
+  --blue-800: #0162e8;
+  --purple-900: #4800c9;
+  --purple-800: #884af1;
+  --black-color-rgb: 0, 0, 0;
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  color: var(--dark-color);
+  font-size: 14px;
+  font-weight: 400;
+  background-color: var(--body-bg-color);
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+ul,
+p {
+  margin: 0;
+}
+ul {
+  list-style: none;
+  padding: 0;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+// Custom scrollbar styles
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scroll-track-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-color);
+}

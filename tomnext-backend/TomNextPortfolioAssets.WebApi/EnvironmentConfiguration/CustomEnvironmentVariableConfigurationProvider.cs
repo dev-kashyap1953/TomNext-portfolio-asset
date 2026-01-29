@@ -1,0 +1,34 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace TomNextPortfolioAssets.WebApi.EnvironmentConfiguration
+{
+    /// <summary>
+    /// Create custom environment variable configuration provider
+    /// </summary>
+    public class CustomEnvironmentVariableConfigurationProvider : ConfigurationProvider
+    {
+        /// <summary>
+        /// Loads configuration from environment variable.
+        /// </summary>
+        public override void Load()
+        {
+            var envVariables = Environment.GetEnvironmentVariables();
+            var data = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DictionaryEntry envVar in envVariables)
+            {
+                var key = envVar.Key.ToString();
+                var value = envVar.Value?.ToString();
+                if (key.Contains("_"))
+                {
+                    key = key.Replace("_", ":");
+                }
+                data[key] = value;
+            }
+            Data = data;
+        }
+    }
+}
