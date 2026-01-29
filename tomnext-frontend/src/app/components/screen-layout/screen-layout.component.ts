@@ -343,7 +343,7 @@ export class ScreenLayoutComponent implements OnInit, AfterViewInit {
 
     this.articlesByCategoryConfig = {
       type: 'pie',
-      title: 'Articles by Category',
+      title: 'Articles By Sectors',
       series: [{ name: 'Articles', data: categoryData, type: 'pie' }],
     };
   }
